@@ -15,8 +15,28 @@ import {
 } from '@mantine/core'
 import { GoogleButton } from './/GoogleButton'
 import { TwitterButton } from './TwitterButton'
+import { useMutation } from '@tanstack/react-query'
+import { UserLogin } from '../../service/AuthService'
+import { notifications } from '@mantine/notifications'
 
 export function AuthenticationForm(props: PaperProps) {
+  const { mutate: login, isPending } = useMutation({
+    mutationFn: UserLogin,
+    onSuccess: (data, variables) => {
+      notifications.show({
+        message: `${variables.username} Logged in `,
+        color: 'green',
+      })
+    },
+    onError: (error) => {
+      notifications.show({
+        title: error.message,
+        message: `Login Failed`,
+        color: 'red',
+      })
+    },
+  })
+
   const [type, toggle] = useToggle(['login', 'register'])
   const form = useForm({
     initialValues: {
@@ -27,10 +47,10 @@ export function AuthenticationForm(props: PaperProps) {
     },
 
     validate: {
-      email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
+      // email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
       password: (val) =>
-        val.length <= 6
-          ? 'Password should include at least 6 characters'
+        val.length <= 4
+          ? 'Password should include at least 4 characters'
           : null,
     },
   })
@@ -48,31 +68,39 @@ export function AuthenticationForm(props: PaperProps) {
 
       <Divider label="Or continue with email" labelPosition="center" my="lg" />
 
-      <form onSubmit={form.onSubmit(() => {})}>
+      <form
+        onSubmit={form.onSubmit(() => {
+          login({
+            password: form.values.password,
+            username: form.values.name,
+          })
+        })}
+      >
         <Stack>
+          <TextInput
+            required
+            label="Name"
+            placeholder="Your name"
+            value={form.values.name}
+            onChange={(event) =>
+              form.setFieldValue('name', event.currentTarget.value)
+            }
+            radius="md"
+          />
+
           {type === 'register' && (
             <TextInput
-              label="Name"
-              placeholder="Your name"
-              value={form.values.name}
+              required
+              label="Email"
+              placeholder="hello@mantine.dev"
+              value={form.values.email}
               onChange={(event) =>
-                form.setFieldValue('name', event.currentTarget.value)
+                form.setFieldValue('email', event.currentTarget.value)
               }
+              error={form.errors.email && 'Invalid email'}
               radius="md"
             />
           )}
-
-          <TextInput
-            required
-            label="Email"
-            placeholder="hello@mantine.dev"
-            value={form.values.email}
-            onChange={(event) =>
-              form.setFieldValue('email', event.currentTarget.value)
-            }
-            error={form.errors.email && 'Invalid email'}
-            radius="md"
-          />
 
           <PasswordInput
             required
@@ -112,7 +140,7 @@ export function AuthenticationForm(props: PaperProps) {
               ? 'Already have an account? Login'
               : "Don't have an account? Register"}
           </Anchor>
-          <Button type="submit" radius="xl">
+          <Button type="submit" radius="xl" loading={isPending}>
             {upperFirst(type)}
           </Button>
         </Group>

@@ -38,7 +38,7 @@ interface SignupResponse {
   phone: string
 }
 
-export const Login = (userAuth: LoginRequest): Promise<LoginResponse> =>
+export const UserLogin = (userAuth: LoginRequest): Promise<LoginResponse> =>
   axios
     .post(`${BASE_URL}/auth/login`, JSON.stringify(userAuth))
     .then((res: { data: LoginResponse }) => res.data)
