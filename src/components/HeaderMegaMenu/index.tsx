@@ -28,6 +28,7 @@ import {
   IconChevronDown,
 } from '@tabler/icons-react'
 import classes from './HeaderMegaMenu.module.css'
+import { ThemeSelector } from '../ThemeSelector'
 
 const mockdata = [
   {
@@ -156,6 +157,7 @@ export function HeaderMegaMenu() {
           </Group>
 
           <Group visibleFrom="sm">
+            <ThemeSelector />
             <Button variant="default">Log in</Button>
             <Button>Sign up</Button>
           </Group>
