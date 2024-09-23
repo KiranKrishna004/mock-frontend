@@ -16,13 +16,13 @@ import {
 import { GoogleButton } from './/GoogleButton'
 import { TwitterButton } from './TwitterButton'
 import { useMutation } from '@tanstack/react-query'
-import { UserLogin } from '../../service/AuthService'
+import { Signup, UserLogin } from '../../service/AuthService'
 import { notifications } from '@mantine/notifications'
 
 export function AuthenticationForm(props: PaperProps) {
-  const { mutate: login, isPending } = useMutation({
+  const { mutate: login, isPending: isLogging } = useMutation({
     mutationFn: UserLogin,
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       notifications.show({
         message: `${variables.username} Logged in `,
         color: 'green',
@@ -32,6 +32,23 @@ export function AuthenticationForm(props: PaperProps) {
       notifications.show({
         title: error.message,
         message: `Login Failed`,
+        color: 'red',
+      })
+    },
+  })
+
+  const { mutate: signup, isPending: isSigning } = useMutation({
+    mutationFn: Signup,
+    onSuccess: (_, variables) => {
+      notifications.show({
+        message: `${variables.username} Signed in `,
+        color: 'green',
+      })
+    },
+    onError: (error) => {
+      notifications.show({
+        title: error.message,
+        message: `Signup Failed`,
         color: 'red',
       })
     },
@@ -70,10 +87,18 @@ export function AuthenticationForm(props: PaperProps) {
 
       <form
         onSubmit={form.onSubmit(() => {
-          login({
-            password: form.values.password,
-            username: form.values.name,
-          })
+          if (type === 'request') {
+            login({
+              password: form.values.password,
+              username: form.values.name,
+            })
+          } else {
+            signup({
+              email: form.values.email,
+              password: form.values.password,
+              username: form.values.name,
+            })
+          }
         })}
       >
         <Stack>
@@ -140,7 +165,7 @@ export function AuthenticationForm(props: PaperProps) {
               ? 'Already have an account? Login'
               : "Don't have an account? Register"}
           </Anchor>
-          <Button type="submit" radius="xl" loading={isPending}>
+          <Button type="submit" radius="xl" loading={isLogging || isSigning}>
             {upperFirst(type)}
           </Button>
         </Group>
